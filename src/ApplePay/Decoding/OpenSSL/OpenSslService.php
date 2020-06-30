@@ -62,7 +62,7 @@ class OpenSslService
             throw new \RuntimeException("Can't get certificates", 0, $e);
         }
 
-        return rtrim($commandOutput);
+        return $this->normalisePrintCerts(rtrim($commandOutput));
     }
 
     /**
@@ -100,6 +100,21 @@ class OpenSslService
         }
 
         return $execOutput;
+    }
+
+    /**
+     * Normalise output of `openssl pkcs7 -print_certs` between versions.
+     *
+     * @param $certificates
+     * @return string
+     * @throws \RuntimeException
+     */
+    private function normalisePrintCerts($certificates) {
+        // Between 1.1.0 and 1.1.1 headers started getting separated by 2 newlines instead of 1.
+        $certificates = str_replace("\n\n", "\n", $certificates);
+        $certificates = str_replace("-----END CERTIFICATE-----\n", "-----END CERTIFICATE-----\n\n", $certificates);
+
+        return $certificates;
     }
 
     /**
